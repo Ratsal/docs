@@ -3,95 +3,135 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Focus Loop — Pomodoro Timer</title>
+  <title>Rajipo Time</title>
 
-  <!-- Makes it open full-screen like a real app when added to the iPhone home screen -->
+  <!-- Full-screen app feel when added to the iPhone home screen -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Focus Loop" />
-  <meta name="theme-color" content="#0f0f17" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23ff5a5f'/%3E%3Ccircle cx='50' cy='52' r='30' fill='none' stroke='white' stroke-width='7'/%3E%3Cline x1='50' y1='52' x2='50' y2='32' stroke='white' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <meta name="apple-mobile-web-app-title" content="Rajipo Time" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230a0a0f'/%3E%3Ccircle cx='50' cy='52' r='30' fill='none' stroke='%23ff7a18' stroke-width='6'/%3E%3Cline x1='50' y1='52' x2='50' y2='30' stroke='%23ffae3d' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E" />
 
   <style>
     :root {
-      --bg: #0f0f17;
-      --card: #1a1a27;
-      --accent: #ff5a5f;
-      --break: #36c6a0;
-      --text: #f4f4f8;
-      --muted: #9090a8;
+      --bg: #0a0a0f;
+      --panel: #14141f;
+      --line: #ffffff14;
+      --accent: #ff7a18;       /* sci-fi orange */
+      --accent-soft: #ffae3d;
+      --break: #2fd4ff;        /* cool cyan for break screen */
+      --text: #f6f1e9;
+      --muted: #8a8aa0;
+      --glow: 0 0 12px;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body {
-      margin: 0; padding: 0; height: 100%;
-      background: var(--bg); color: var(--text);
+    html, body { margin: 0; height: 100%; }
+    body {
+      background:
+        radial-gradient(120% 80% at 50% -10%, #1c1407 0%, transparent 55%),
+        repeating-linear-gradient(0deg, #ffffff05 0 1px, transparent 1px 3px),
+        var(--bg);
+      color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       overscroll-behavior: none; user-select: none;
-    }
-    body {
       display: flex; flex-direction: column; align-items: center;
-      padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
-      min-height: 100vh; transition: background 0.4s;
+      padding: max(16px, env(safe-area-inset-top)) 18px max(20px, env(safe-area-inset-bottom));
+      min-height: 100vh; transition: background 0.5s;
     }
-    body.flashing { animation: flash 0.6s steps(1) infinite; }
-    @keyframes flash {
-      0%   { background: var(--accent); }
-      50%  { background: var(--bg); }
-    }
+    /* Break phase recolors the whole accent system */
+    body.phase-break { --accent: var(--break); --accent-soft: #9fe9ff; }
 
-    h1 { font-size: 1.1rem; letter-spacing: 0.5px; margin: 8px 0 2px; font-weight: 600; }
-    .phase-label {
-      font-size: 0.85rem; color: var(--muted); text-transform: uppercase;
-      letter-spacing: 2px; margin-bottom: 18px; transition: color 0.3s;
-    }
-    body.break .phase-label { color: var(--break); }
+    body.flashing { animation: flashbg 0.5s steps(1) infinite; }
+    @keyframes flashbg { 50% { background: #1a0d00; } }
 
-    /* Circular timer */
-    .ring-wrap { position: relative; width: min(74vw, 300px); aspect-ratio: 1; margin: 6px 0 10px; }
+    /* ---------- Top bar (focus mode only) ---------- */
+    #topbar {
+      width: 100%; max-width: 420px; display: none;
+      align-items: center; justify-content: space-between; margin-bottom: 6px;
+    }
+    body.running #topbar { display: flex; }
+    .icon-btn {
+      width: 44px; height: 44px; border-radius: 14px; border: 1px solid var(--line);
+      background: #ffffff0a; color: var(--text); font-size: 1.2rem; cursor: pointer;
+    }
+    .icon-btn:active { transform: scale(0.92); }
+    #topTitle { font-size: 0.8rem; letter-spacing: 4px; color: var(--accent);
+      text-shadow: var(--glow) var(--accent); font-weight: 700; }
+
+    /* ---------- Brand (setup only) ---------- */
+    #brand {
+      font-size: 2.1rem; font-weight: 800; letter-spacing: 3px; margin: 10px 0 0;
+      text-shadow: var(--glow) var(--accent);
+    }
+    #brand span { color: var(--accent); }
+    #tagline { font-size: 0.72rem; letter-spacing: 5px; color: var(--muted);
+      text-transform: uppercase; margin: 4px 0 10px; }
+    body.running #brand, body.running #tagline { display: none; }
+
+    /* ---------- Phase label ---------- */
+    .phase-label { font-size: 0.8rem; letter-spacing: 4px; text-transform: uppercase;
+      color: var(--accent); text-shadow: var(--glow) var(--accent); margin: 10px 0 14px; }
+
+    /* ---------- Timer ring ---------- */
+    .ring-wrap { position: relative; width: min(72vw, 290px); aspect-ratio: 1; }
     svg.ring { width: 100%; height: 100%; transform: rotate(-90deg); }
-    .ring-bg { stroke: #2a2a3d; }
-    .ring-fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 0.5s linear, stroke 0.3s; }
-    body.break .ring-fg { stroke: var(--break); }
-    .time-display {
-      position: absolute; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-    }
-    .time { font-size: 3.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .session-count-mini { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+    .ring-bg { stroke: #ffffff12; }
+    .ring-fg { stroke: var(--accent); stroke-linecap: round;
+      filter: drop-shadow(0 0 7px var(--accent));
+      transition: stroke-dashoffset 0.5s linear, stroke 0.4s; }
+    .time-display { position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; }
+    .time { font-size: 3.3rem; font-weight: 700; font-family: "SF Mono", ui-monospace, monospace;
+      font-variant-numeric: tabular-nums; letter-spacing: 1px; text-shadow: var(--glow) var(--accent); }
+    .mini { font-size: 0.72rem; color: var(--muted); margin-top: 6px; letter-spacing: 1px; }
 
-    /* Controls */
-    .controls { display: flex; gap: 14px; margin: 10px 0 6px; }
-    button {
-      border: none; border-radius: 50px; font-size: 1rem; font-weight: 600;
-      padding: 14px 30px; color: var(--text); background: var(--card);
-      cursor: pointer; transition: transform 0.1s, background 0.2s; touch-action: manipulation;
+    /* ---------- Controls ---------- */
+    .controls { display: flex; gap: 12px; margin: 16px 0 4px; }
+    button.btn {
+      border: 1px solid var(--accent); border-radius: 40px; font-size: 1rem; font-weight: 700;
+      letter-spacing: 1px; padding: 13px 30px; color: var(--bg); background: var(--accent);
+      cursor: pointer; box-shadow: var(--glow) #ff7a1840; transition: transform 0.1s; touch-action: manipulation;
     }
-    button:active { transform: scale(0.94); }
-    button.primary { background: var(--accent); }
-    body.break button.primary { background: var(--break); }
-    button.wide { width: 100%; }
+    button.btn.ghost { background: transparent; color: var(--accent); box-shadow: none; }
+    button.btn:active { transform: scale(0.94); }
+    #resetBtn { display: inline-block; }
+    body.running #resetBtn { display: none; }
 
-    /* Settings card */
-    .card {
-      background: var(--card); border-radius: 18px; padding: 18px 20px;
-      width: 100%; max-width: 360px; margin-top: 14px;
+    /* ---------- Settings sheet ---------- */
+    #sheet { width: 100%; max-width: 420px; }
+    body.running #sheet { display: none; }
+    /* When opened over focus mode, become an overlay */
+    body.running.show-settings #sheet {
+      display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+      background: var(--panel); border-top: 1px solid var(--accent);
+      border-radius: 22px 22px 0 0; padding: 16px 18px max(20px, env(safe-area-inset-bottom));
+      max-height: 82vh; overflow-y: auto; box-shadow: 0 -10px 40px #000a;
     }
-    .card h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1.5px;
+    body.running.show-settings #sheetBackdrop { display: block; }
+    #sheetBackdrop { display: none; position: fixed; inset: 0; background: #000a; z-index: 20; }
+    .sheet-head { display: none; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    body.running.show-settings .sheet-head { display: flex; }
+    .sheet-head b { letter-spacing: 2px; font-size: 0.85rem; color: var(--accent); }
+
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+      padding: 16px 18px; margin-top: 14px; }
+    .card h2 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 2px;
       color: var(--muted); margin: 0 0 12px; }
-    .row { display: flex; align-items: center; justify-content: space-between;
-      padding: 9px 0; font-size: 0.95rem; }
-    .row + .row { border-top: 1px solid #ffffff10; }
+    .row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; font-size: 0.95rem; }
+    .row + .row { border-top: 1px solid var(--line); }
 
-    .presets { display: flex; gap: 8px; flex-wrap: wrap; }
-    .chip {
-      padding: 8px 14px; border-radius: 12px; background: #ffffff10;
-      font-size: 0.9rem; cursor: pointer; transition: background 0.15s;
-    }
-    .chip.active { background: var(--accent); color: #fff; }
-    .chip input { width: 46px; background: transparent; border: none; color: inherit;
-      font-size: 0.9rem; text-align: center; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { padding: 8px 13px; border-radius: 11px; background: #ffffff0d; border: 1px solid transparent;
+      font-size: 0.9rem; cursor: pointer; }
+    .chip.active { background: var(--accent); color: var(--bg); box-shadow: var(--glow) #ff7a1840; }
+    .chip input { width: 44px; background: transparent; border: none; color: inherit; font-size: 0.9rem; text-align: center; }
 
-    /* iOS-style toggle */
+    .sound-opt { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sound { flex: 1; min-width: 90px; text-align: center; padding: 11px 8px; border-radius: 13px;
+      background: #ffffff0d; border: 1px solid transparent; cursor: pointer; font-size: 0.9rem; }
+    .sound.active { border-color: var(--accent); box-shadow: var(--glow) #ff7a1830; }
+    .sound small { display: block; color: var(--muted); font-size: 0.66rem; margin-top: 3px; letter-spacing: 0.5px; }
+
     .toggle { position: relative; width: 50px; height: 30px; flex-shrink: 0; }
     .toggle input { opacity: 0; width: 0; height: 0; }
     .slider { position: absolute; inset: 0; background: #3a3a50; border-radius: 30px; transition: 0.25s; }
@@ -100,99 +140,121 @@
     .toggle input:checked + .slider { background: var(--accent); }
     .toggle input:checked + .slider::before { transform: translateX(20px); }
 
-    .stats { text-align: center; margin-top: 16px; color: var(--muted); font-size: 0.9rem; }
-    .stats b { color: var(--text); font-size: 1.6rem; display: block; }
-    .note { font-size: 0.72rem; color: var(--muted); text-align: center; margin: 14px 0 4px; max-width: 340px; line-height: 1.5; }
-    a.reset-day { color: var(--muted); font-size: 0.78rem; text-decoration: underline; cursor: pointer; }
+    .stats { text-align: center; margin-top: 18px; color: var(--muted); font-size: 0.85rem; letter-spacing: 1px; }
+    .stats b { color: var(--accent); font-size: 1.7rem; display: block; text-shadow: var(--glow) var(--accent); }
+    body.running .stats { display: none; }
+    .reset-day { color: var(--muted); font-size: 0.75rem; text-decoration: underline; cursor: pointer; }
+    .note { font-size: 0.68rem; color: var(--muted); text-align: center; margin: 16px 0 4px; max-width: 340px; line-height: 1.5; }
+    body.running .note { display: none; }
   </style>
 </head>
 <body>
-  <h1>⏱️ Focus Loop</h1>
-  <div class="phase-label" id="phaseLabel">Focus Session</div>
+  <div id="sheetBackdrop"></div>
+
+  <!-- Focus-mode top bar -->
+  <header id="topbar">
+    <button class="icon-btn" id="exitBtn" aria-label="Exit">✕</button>
+    <div id="topTitle">RAJIPO TIME</div>
+    <button class="icon-btn" id="gearBtn" aria-label="Settings">⚙</button>
+  </header>
+
+  <h1 id="brand">RAJIPO<span> TIME</span></h1>
+  <div id="tagline">Focus Protocol</div>
+
+  <div class="phase-label" id="phaseLabel">Focus</div>
 
   <div class="ring-wrap">
     <svg class="ring" viewBox="0 0 200 200">
-      <circle class="ring-bg" cx="100" cy="100" r="90" fill="none" stroke-width="12" />
-      <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="90" fill="none" stroke-width="12"
+      <circle class="ring-bg" cx="100" cy="100" r="90" fill="none" stroke-width="11" />
+      <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="90" fill="none" stroke-width="11"
               stroke-dasharray="565.48" stroke-dashoffset="0" />
     </svg>
     <div class="time-display">
-      <div class="time" id="time">10:00</div>
-      <div class="session-count-mini" id="miniCount">0 sessions today</div>
+      <div class="time" id="time">15:00</div>
+      <div class="mini" id="miniCount">0 sessions today</div>
     </div>
   </div>
 
   <div class="controls">
-    <button class="primary" id="startBtn">Start</button>
-    <button id="resetBtn">Reset</button>
+    <button class="btn" id="startBtn">▶ Start</button>
+    <button class="btn ghost" id="resetBtn">Reset</button>
   </div>
 
-  <div class="card">
-    <h2>Session Length</h2>
-    <div class="presets" id="presets">
-      <div class="chip" data-min="1">1</div>
-      <div class="chip" data-min="2">2</div>
-      <div class="chip" data-min="5">5</div>
-      <div class="chip" data-min="10">10</div>
-      <div class="chip active" data-min="15">15</div>
-      <div class="chip" data-min="20">20</div>
-      <div class="chip" data-min="25">25</div>
-      <div class="chip" data-min="custom">⚙️ <input id="customMin" type="number" min="1" max="180" placeholder="min" /></div>
-    </div>
-  </div>
+  <!-- SETTINGS (inline on setup, overlay sheet in focus mode) -->
+  <div id="sheet">
+    <div class="sheet-head"><b>SETTINGS</b><button class="btn ghost" id="closeOverlay">Done</button></div>
 
-  <div class="card">
-    <h2>When a session ends</h2>
-    <div class="row">
-      <span>🔁 Auto-continue to next</span>
-      <label class="toggle"><input type="checkbox" id="optAuto" checked><span class="slider"></span></label>
+    <div class="card">
+      <h2>Focus Length (minutes)</h2>
+      <div class="chips" id="workChips">
+        <div class="chip" data-min="1">1</div>
+        <div class="chip" data-min="2">2</div>
+        <div class="chip" data-min="5">5</div>
+        <div class="chip active" data-min="10">10</div>
+        <div class="chip" data-min="15">15</div>
+        <div class="chip" data-min="20">20</div>
+        <div class="chip" data-min="25">25</div>
+        <div class="chip" data-min="custom">⚙️<input id="customMin" type="number" min="1" max="180" placeholder="min" /></div>
+      </div>
     </div>
-    <div class="row">
-      <span>🔔 Play alarm sound</span>
-      <label class="toggle"><input type="checkbox" id="optSound" checked><span class="slider"></span></label>
+
+    <div class="card">
+      <h2>Break Length (between sessions)</h2>
+      <div class="chips" id="breakChips">
+        <div class="chip" data-sec="0">Off</div>
+        <div class="chip active" data-sec="60">1 min</div>
+        <div class="chip" data-sec="120">2 min</div>
+        <div class="chip" data-sec="300">5 min</div>
+      </div>
     </div>
-    <div class="row">
-      <span>✨ Flash the screen</span>
-      <label class="toggle"><input type="checkbox" id="optFlash" checked><span class="slider"></span></label>
+
+    <div class="card">
+      <h2>Alarm Sound (tap to preview)</h2>
+      <div class="sound-opt" id="soundOpts">
+        <div class="sound active" data-sound="birds">🐦 Birds<small>chirping</small></div>
+        <div class="sound" data-sound="crystal">💎 Crystal<small>shimmer</small></div>
+        <div class="sound" data-sound="cosmic">🌌 Cosmic<small>synth sweep</small></div>
+      </div>
     </div>
-    <div class="row">
-      <span>📣 Keep ringing until I tap</span>
-      <label class="toggle"><input type="checkbox" id="optKeepRinging"><span class="slider"></span></label>
-    </div>
-    <div class="row">
-      <span>☕ Add 5-min breaks between</span>
-      <label class="toggle"><input type="checkbox" id="optBreaks"><span class="slider"></span></label>
+
+    <div class="card">
+      <h2>Behaviour</h2>
+      <div class="row">
+        <span>🔁 Auto-loop sessions</span>
+        <label class="toggle"><input type="checkbox" id="optAuto" checked><span class="slider"></span></label>
+      </div>
+      <div class="row">
+        <span>✨ Flash screen on alarm</span>
+        <label class="toggle"><input type="checkbox" id="optFlash" checked><span class="slider"></span></label>
+      </div>
     </div>
   </div>
 
   <div class="stats">
     Completed today
     <b id="dayCount">0</b>
-    <a class="reset-day" id="resetDay">reset day count</a>
+    <span class="reset-day" id="resetDay">reset day count</span>
   </div>
 
   <p class="note">
-    Tip: on iPhone, tap <b>Share → Add to Home Screen</b> to use this like an app.
-    Keep the screen on for the alarm to sound — iPhone blocks web alarms when locked.
+    iPhone tip: <b>Share → Add to Home Screen</b> to use it like an app.
+    The alarm sounds while the app is open and the screen is on (iPhone blocks web alarms when locked).
   </p>
 
   <script>
     const $ = id => document.getElementById(id);
-    const RING_LEN = 2 * Math.PI * 90; // 565.48
+    const RING_LEN = 2 * Math.PI * 90;
 
-    let durationSec = 15 * 60;
-    let remaining = durationSec;
+    let phase = 'work';          // 'work' | 'break'
+    let durationSec = 600;
+    let remaining = 600;
     let running = false;
-    let onBreak = false;
     let ticker = null;
-    let ringingInterval = null;
+    let currentSound = 'birds';
     let audioCtx = null;
 
-    // ---------- Daily session count (persisted, resets each calendar day) ----------
-    function todayKey() {
-      const d = new Date();
-      return `focusloop-${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-    }
+    /* ---------- Daily count ---------- */
+    function todayKey() { const d = new Date(); return `rajipo-${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
     function getCount() { return parseInt(localStorage.getItem(todayKey()) || '0', 10); }
     function setCount(n) { localStorage.setItem(todayKey(), n); renderCount(); }
     function renderCount() {
@@ -201,151 +263,186 @@
       $('miniCount').textContent = `${n} session${n === 1 ? '' : 's'} today`;
     }
 
-    // ---------- Display ----------
-    function fmt(sec) {
-      const m = Math.floor(sec / 60), s = sec % 60;
-      return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    }
+    /* ---------- Display ---------- */
+    function fmt(sec) { const m = Math.floor(sec/60), s = sec%60;
+      return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
     function render() {
       $('time').textContent = fmt(remaining);
       const frac = durationSec === 0 ? 0 : remaining / durationSec;
       $('ringFg').style.strokeDashoffset = RING_LEN * (1 - frac);
-      $('phaseLabel').textContent = onBreak ? 'Break' : 'Focus Session';
-      document.body.classList.toggle('break', onBreak);
+      $('phaseLabel').textContent = phase === 'break' ? 'Break — Relax' : 'Focus';
+      document.body.classList.toggle('phase-break', phase === 'break');
     }
 
-    // ---------- Sound (generated, no files needed) ----------
-    function beep() {
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const now = audioCtx.currentTime;
-        [880, 660, 990].forEach((freq, i) => {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.frequency.value = freq;
-          osc.type = 'sine';
-          const t = now + i * 0.18;
-          gain.gain.setValueAtTime(0.0001, t);
-          gain.gain.exponentialRampToValueAtTime(0.35, t + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
-          osc.connect(gain); gain.connect(audioCtx.destination);
-          osc.start(t); osc.stop(t + 0.18);
+    /* ---------- Audio engine ---------- */
+    function ensureAudio() {
+      if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    function tone(freqStart, freqEnd, t, dur, peak, type) {
+      const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(freqStart, t);
+      if (freqEnd) osc.frequency.linearRampToValueAtTime(freqEnd, t + dur * 0.5);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(peak, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(g); g.connect(audioCtx.destination);
+      osc.start(t); osc.stop(t + dur + 0.05);
+    }
+    function soundBirds(t0) {                       // cheerful chirps, ~2.5s
+      for (let i = 0; i < 8; i++) {
+        const t = t0 + i * 0.3;
+        const base = 2300 + (i % 3) * 250;
+        tone(base, base + 1100, t, 0.12, 0.22, 'sine');
+        tone(base + 1100, base + 300, t + 0.06, 0.10, 0.16, 'sine');
+      }
+    }
+    function soundCrystal(t0) {                      // shimmering high bells, long decay
+      const freqs = [1568, 2093, 2637, 3136, 2349];
+      for (let r = 0; r < 2; r++) {
+        freqs.forEach((f, i) => {
+          const t = t0 + r * 1.3 + i * 0.11;
+          const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+          osc.type = 'sine'; osc.frequency.value = f;
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.16, t + 0.03);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
+          osc.connect(g); g.connect(audioCtx.destination);
+          osc.start(t); osc.stop(t + 1.6);
         });
-      } catch (e) { /* audio not allowed yet */ }
-    }
-
-    // ---------- Session end ----------
-    function endSession() {
-      pause();
-      if (!onBreak) setCount(getCount() + 1); // only count completed focus sessions
-
-      if ($('optSound').checked) beep();
-      if ($('optFlash').checked) {
-        document.body.classList.add('flashing');
-        setTimeout(() => document.body.classList.remove('flashing'), 3000);
       }
-      if ($('optKeepRinging').checked) {
-        document.body.classList.add('flashing');
-        ringingInterval = setInterval(() => { if ($('optSound').checked) beep(); }, 1500);
-        $('startBtn').textContent = 'Stop alarm';
-        return; // wait for user tap before continuing
-      }
-      proceedNext();
+    }
+    function soundCosmic(t0) {                        // sci-fi filtered sweep
+      const filt = audioCtx.createBiquadFilter();
+      filt.type = 'lowpass';
+      filt.frequency.setValueAtTime(400, t0);
+      filt.frequency.exponentialRampToValueAtTime(3500, t0 + 1.6);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.16, t0 + 0.3);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
+      filt.connect(g); g.connect(audioCtx.destination);
+      [220, 223, 330].forEach(f => {
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(f, t0);
+        osc.frequency.exponentialRampToValueAtTime(f * 3, t0 + 2);
+        osc.connect(filt); osc.start(t0); osc.stop(t0 + 2.7);
+      });
+    }
+    function playAlarm(name) {
+      ensureAudio(); if (!audioCtx) return;
+      const t0 = audioCtx.currentTime + 0.02;
+      if (name === 'crystal') soundCrystal(t0);
+      else if (name === 'cosmic') soundCosmic(t0);
+      else soundBirds(t0);
+    }
+    function softChime() {                            // gentle 2-note return-to-focus
+      ensureAudio(); if (!audioCtx) return;
+      const t = audioCtx.currentTime + 0.02;
+      tone(660, null, t, 0.18, 0.18, 'triangle');
+      tone(990, null, t + 0.16, 0.22, 0.18, 'triangle');
     }
 
-    function stopRinging() {
-      if (ringingInterval) { clearInterval(ringingInterval); ringingInterval = null; }
-      document.body.classList.remove('flashing');
+    /* ---------- Lengths ---------- */
+    function workLen() {
+      const a = document.querySelector('#workChips .chip.active');
+      if (!a) return 600;
+      if (a.dataset.min === 'custom') { const v = parseInt($('customMin').value,10); return (v>0?v:10)*60; }
+      return parseInt(a.dataset.min,10) * 60;
+    }
+    function breakLen() {
+      const a = document.querySelector('#breakChips .chip.active');
+      return a ? parseInt(a.dataset.sec,10) : 60;
     }
 
-    function proceedNext() {
-      stopRinging();
-      const breaksOn = $('optBreaks').checked;
-      if (breaksOn && !onBreak) {
-        onBreak = true;
-        durationSec = remaining = 5 * 60;
-      } else {
-        onBreak = false;
-        durationSec = remaining = selectedDuration();
-      }
-      render();
-      if ($('optAuto').checked) start();
-      else $('startBtn').textContent = 'Start';
-    }
-
-    // ---------- Timer controls ----------
+    /* ---------- Timer flow ---------- */
     function tick() {
       remaining--;
-      if (remaining <= 0) { remaining = 0; render(); endSession(); return; }
+      if (remaining <= 0) { remaining = 0; render(); phaseEnd(); return; }
       render();
     }
-    function start() {
-      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-      // prime audio on first user gesture so iOS allows sound later
-      if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} }
-      running = true;
-      $('startBtn').textContent = 'Pause';
-      clearInterval(ticker);
-      ticker = setInterval(tick, 1000);
-    }
-    function pause() {
-      running = false;
-      clearInterval(ticker);
-      $('startBtn').textContent = remaining < durationSec ? 'Resume' : 'Start';
-    }
-    function reset() {
-      pause(); stopRinging();
-      onBreak = false;
-      durationSec = remaining = selectedDuration();
-      $('startBtn').textContent = 'Start';
-      render();
-    }
+    function runClock() { clearInterval(ticker); ticker = setInterval(tick, 1000); running = true; $('startBtn').textContent = '⏸ Pause'; }
+    function pause() { clearInterval(ticker); running = false; $('startBtn').textContent = '▶ Resume'; }
 
-    function selectedDuration() {
-      const active = document.querySelector('.chip.active');
-      if (!active) return 15 * 60;
-      if (active.dataset.min === 'custom') {
-        const v = parseInt($('customMin').value, 10);
-        return (v && v > 0 ? v : 15) * 60;
+    function beginWork() { phase = 'work'; durationSec = remaining = workLen(); render(); runClock(); }
+    function beginBreak() { phase = 'break'; durationSec = remaining = breakLen(); render(); runClock(); }
+
+    function phaseEnd() {
+      if (phase === 'work') {
+        setCount(getCount() + 1);
+        playAlarm(currentSound);                         // small alarm (~2.5s)
+        if ($('optFlash').checked) { document.body.classList.add('flashing');
+          setTimeout(() => document.body.classList.remove('flashing'), 2500); }
+        if (!$('optAuto').checked) { pause(); phase = 'work'; durationSec = remaining = workLen(); render(); return; }
+        if (breakLen() > 0) beginBreak();                // switch to break screen + short timer
+        else beginWork();
+      } else {
+        softChime();                                     // break over → back to focus
+        beginWork();
       }
-      return parseInt(active.dataset.min, 10) * 60;
     }
 
-    // ---------- Wiring ----------
-    $('startBtn').addEventListener('click', () => {
-      if (ringingInterval) { proceedNext(); return; } // "Stop alarm" path
-      running ? pause() : start();
-    });
-    $('resetBtn').addEventListener('click', reset);
-    $('resetDay').addEventListener('click', () => { setCount(0); });
+    /* ---------- View control ---------- */
+    function enterFocus() {
+      ensureAudio();                                     // unlock audio on the Start gesture
+      requestWake();
+      document.body.classList.add('running');
+      beginWork();
+    }
+    function exitFocus() {
+      pause(); document.body.classList.remove('running', 'show-settings', 'flashing', 'phase-break');
+      phase = 'work'; durationSec = remaining = workLen();
+      $('startBtn').textContent = '▶ Start'; render();
+    }
 
-    document.querySelectorAll('.chip').forEach(chip => {
-      chip.addEventListener('click', (e) => {
-        if (e.target.tagName === 'INPUT') return;
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        if (!running) reset();
+    /* ---------- Wiring ---------- */
+    $('startBtn').addEventListener('click', () => {
+      if (!document.body.classList.contains('running')) { enterFocus(); return; }
+      running ? pause() : runClock();
+    });
+    $('resetBtn').addEventListener('click', () => { phase='work'; durationSec=remaining=workLen(); render(); });
+    $('exitBtn').addEventListener('click', exitFocus);
+    $('gearBtn').addEventListener('click', () => { document.body.classList.add('show-settings'); pause(); });
+    $('closeOverlay').addEventListener('click', () => { document.body.classList.remove('show-settings'); });
+    $('sheetBackdrop').addEventListener('click', () => { document.body.classList.remove('show-settings'); });
+    $('resetDay').addEventListener('click', () => setCount(0));
+
+    function wireChips(containerId, onPick) {
+      document.querySelectorAll(`#${containerId} .chip`).forEach(chip => {
+        chip.addEventListener('click', e => {
+          if (e.target.tagName === 'INPUT') return;
+          document.querySelectorAll(`#${containerId} .chip`).forEach(c => c.classList.remove('active'));
+          chip.classList.add('active'); onPick();
+        });
+      });
+    }
+    wireChips('workChips', () => { if (!running) { durationSec = remaining = workLen(); render(); } });
+    wireChips('breakChips', () => {});
+    $('customMin').addEventListener('input', () => {
+      document.querySelectorAll('#workChips .chip').forEach(c => c.classList.remove('active'));
+      $('customMin').closest('.chip').classList.add('active');
+      if (!running) { durationSec = remaining = workLen(); render(); }
+    });
+
+    document.querySelectorAll('#soundOpts .sound').forEach(s => {
+      s.addEventListener('click', () => {
+        document.querySelectorAll('#soundOpts .sound').forEach(x => x.classList.remove('active'));
+        s.classList.add('active'); currentSound = s.dataset.sound;
+        playAlarm(currentSound);                          // preview it
       });
     });
-    $('customMin').addEventListener('input', () => {
-      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-      $('customMin').closest('.chip').classList.add('active');
-      if (!running) reset();
-    });
 
-    // Keep screen awake while running, if the browser supports it
+    /* Keep the screen awake while the timer runs */
     let wakeLock = null;
-    async function requestWake() {
-      try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch(e){}
-    }
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && running) requestWake();
-    });
-    $('startBtn').addEventListener('click', requestWake);
+    async function requestWake() { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch(e){} }
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && running) requestWake(); });
 
-    // init
+    /* init */
     renderCount();
-    reset();
+    durationSec = remaining = workLen();
+    render();
   </script>
 </body>
 </html>

@@ -1,16 +1,15 @@
-# ⏱️ Focus Loop — Pomodoro Timer
+# 🟠 Rajipo Time — Sci-Fi Focus Timer
 
 A single-file focus timer that runs in any browser. No installs, no accounts, no build step.
 
 ## Features
-- Configurable session length (10 / 15 / 20 / 25 min, or a custom number)
-- **Auto-continue** — automatically rolls into the next session
-- Pause / resume / reset
-- Pick what happens when a session ends:
-  - 🔔 alarm sound
-  - ✨ screen flash
-  - 📣 keep ringing until you tap
-- Optional 5-minute breaks between sessions
+- Futuristic sci-fi orange theme (cool cyan during breaks)
+- Configurable focus length (1 / 2 / 5 / 10 / 15 / 20 / 25 min, or custom)
+- Short breaks between sessions (Off / 1 / 2 / 5 min) on their own distinct screen
+- **Auto-loop** — focus → short break → focus, continuously
+- Choose your alarm sound (tap to preview): 🐦 Birds, 💎 Crystal, 🌌 Cosmic — all generated live, no audio files
+- Distraction-free focus mode: menus hide while running; ✕ Exit (top-left) and ⚙ Settings (top-right)
+- Pause / resume, optional screen flash on alarm
 - Daily completed-session counter (saved on your device, resets each day)
 - Add to your iPhone home screen for a full-screen, app-like experience
 
